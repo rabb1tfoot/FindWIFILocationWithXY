@@ -474,82 +474,9 @@ public class Test{
     }
 
     public static void main(String[] args) {
-        //DBInsert();
-    	//System.out.println("===selectWeb===");
-    	//System.out.println(DBSelectWeb());
-        //DBUpdate();
-        //DBDelete();
-
-        //String email = "asdf12@gmail.com";
-        //String name = "신승호";
-    	
-    	String key = "564b6d4257746a773630454e4d4e53";
-    	String sURL = "http://openapi.seoul.go.kr:8088/"+key+"/json/TbPublicWifiInfo/1/1/";
-    
-    	URL url = null;
-    	try {
-			url = new URL(sURL);
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	
-    	HttpURLConnection con = null;
-    	InputStream is = null;
-		try {
-			con = (HttpURLConnection)url.openConnection();
-			is = con.getInputStream();
-	    	//InputStreamReader sr = new InputStreamReader(con.getInputStream());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-    	 String result = new BufferedReader(new InputStreamReader(is))
-    			   .lines().collect(Collectors.joining("\n"));
-    	
-     	Gson gson = new Gson();
-     	JsonElement json = gson.fromJson(result, JsonElement.class);
-     	
-     	JsonParser jsonParser = new JsonParser();
-     	JsonObject jsonObj = (JsonObject) jsonParser.parse(json.toString());
-     	json = jsonObj.get("TbPublicWifiInfo");
-     	System.out.println(json.toString());
-     	
-     	jsonObj = (JsonObject) jsonParser.parse(json.toString());
-     	JsonArray jsonarr = (JsonArray) jsonObj.get("row");
-     	
-     	for(int i = 0; i < jsonarr.size(); ++i)
-     	{
-     		JsonObject obj = (JsonObject) jsonarr.get(i);
-     		System.out.println(obj.get("X_SWIFI_MGR_NO"));
-     	}
-     	
-     	//String temp = "{\"TbPublicWifiInfo\":{\"list_total_count\":14497}}";//"{\"TbPublicWifiInfo\":{\"list_total_count\":14497,\"RESULT\":{\"CODE\":\"INFO-000\",\"MESSAGE\":\"정상 처리되었습니다\"}}}";
-     	
-     	System.out.println(json.toString());
-     	//System.out.println(temp);
-     	//System.out.print("키값 : CODE -> 밸류 : ");
-     	//WifiInfo wifi = gson.fromJson(json, WifiInfo.class);
-     	//System.out.println(wifi.getTbpublicwifiinfo().getList_total_count());
-     	
-    	/*   	 
-    	System.out.println(result);
-    	
-    	JsonObject element = new JsonParser().parse(result).getAsJsonObject();
-    	String name = element.get("X_SWIFI_MGR_NO").getAsString();
-    	*/
-    	
-    	/*
-     	String temp  =  "{'id' : 1, 'name': 'HR','users' : [{'name': 'Alex','id': 1},{'name': 'Brian','id':2}, {'name': 'Charles','id': 3}]}";
-     	String temp2  = "{\"id\" : 1, \"name\": \"HR\", \"users\" : [ {\"name\": \"Alex\", \"id\": 1}, {\"name\": \"Brian\", \"id\":2}, {\"name\": \"Charles\", \"id\": 3}]}";
-     	Gson gson = new Gson(); 
-     	 
-     	Department department = gson.fromJson(temp2, Department.class);  
-     	//temp =  department.getName();
-     	System.out.println(department);
-     	*/
-    	 
+        DBManager.GetAndFillDB();
+        System.out.println(DBManager.DB.length);
+        System.out.println(DBManager.GetfinalPage());
 
     }
 }

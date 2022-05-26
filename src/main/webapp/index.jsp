@@ -5,19 +5,20 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<link href="CSS/tableStyle.css" rel="stylesheet" type="text/css"/> 
+<link href="CSS/table.css" rel="stylesheet" type="text/css"/> 
 <title>와이파이 정보 구하기 - 서준선</title>
 </head>
 <body>
-<script src="JS/script.js"></script>
+<script src="JS/func.js" type="text/javascript"></script>
 <h1>와이파이 정보 구하기</h1>
-<a href = "http://localhost:8080/JSPStudy/index.jsp">홈</a> <a href = "http://localhost:8080/JSPStudy/history.jsp">위치 히스토리 목록</a> | <a href = "">Open API 와이파이 정보 가져오기</a>
+<a href = "http://localhost:8080/JSPStudy/index.jsp">홈</a> | <a href = "http://localhost:8080/JSPStudy/history.jsp">위치 히스토리 목록</a> 
+| <a href = "http://localhost:8080/JSPStudy/findInfo.jsp">Open API 와이파이 정보 가져오기</a>
 <p></p>
 <form>
-LAT : <input class = "locationX" required placeholder="x.xx"/>
-LNT : <input class = "locationY" required placeholder="x.xx"/>
-<input required type="submit" value="내 위치 가져오기"/>
-<input value="근처 wifi 정보 찾기"/>
+LAT : <input id="locationX" required value="0.0"/>
+LNT : <input id="locationY" required value="0.0"/>
+<button id="btnFindloc" type="button" onclick="GetLoc()">내 위치 가져오기</button>
+<input required type="submit" value="근처 wifi 정보 찾기"/>
 </form>
 
 
@@ -40,7 +41,12 @@ LNT : <input class = "locationY" required placeholder="x.xx"/>
     <th>작업일</th>
   </tr>
   <tr>
-    <td colspan="15">우선 와이파이 정보를 불러와주세요</td>
+  <%
+  if(!javaCode.DBManager.IsFillend())
+  {
+	  out.write("<td colspan=\"15\">우선 와이파이 정보를 불러와주세요</td>");
+  } 
+  %>
   </tr>
 </table>
 
