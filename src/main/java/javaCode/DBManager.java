@@ -127,11 +127,6 @@ public class DBManager {
 		 	JsonParser jsonParser = new JsonParser();
 		 	JsonObject jsonObj = (JsonObject) jsonParser.parse(json.toString());
 		 	json = jsonObj.get("TbPublicWifiInfo");
-		 	if(count == 14)
-		 	{
-		 		int b = 0;
-		 	}
-		 	System.out.println(count);
 		 	
 		 	jsonObj = (JsonObject) jsonParser.parse(json.toString());
 		 	JsonArray jsonarr = (JsonArray) jsonObj.get("row");
@@ -144,10 +139,10 @@ public class DBManager {
 		 	}
 		 	CheckReachEndPage(startEndPage, finalPage);
 		 	
-		 	for(int i = count; i < jsonarr.size(); ++i)
+		 	for(int i = 0; i < jsonarr.size(); ++i)
 		 	{
 		 		JsonObject obj = (JsonObject) jsonarr.get(i);
-		 		DB[i] = new WifiInfo();
+		 		DB[i + count * 1000] = new WifiInfo();
 		 		for(int j = 0; j < Keys.arrKey.length; ++j)
 		 		{
 		 			DB[i].SetParam(j, obj.get(Keys.arrKey[j]).toString());
@@ -157,10 +152,110 @@ public class DBManager {
 		 	if(isFillend)
 		 	{
 		 		break;
-		 	}
+		 	} 
 		 	count++;
 		}
+		//DBinsertWifiInfo
+ 		InsertWifiInfo(DB);
+ 		
 	}
+	private static void InsertWifiInfo(WifiInfo[] DBarray)
+	{ 
+        int count = 0;
+		//db접속을 위한 5가지
+        //1. ip(domain)
+        //2. port
+        //3. 계정
+        //4. password
+        //5. instance
+        //jdbc:DB_VENDER://IP_ADDR:IP_PORT/INSTANCE;
+        String url = "jdbc:mariadb://127.0.0.1:3306/wifiinfo";
+        String dbUserId = "root";
+        String dbPassword = "232723";
+
+        //1.드라이버 로드
+        //2. 커넥션 객체 생성
+        //3. 스테이먼트 객체 생성
+        //4. 쿼리 실행
+        //5. 결과 수행
+        //6. 객체 연결 해제 (close)
+
+        //드라이버 로드
+        try{
+            Class.forName("org.mariadb.jdbc.Driver");
+        }
+        catch (ClassNotFoundException e){
+            e.printStackTrace();
+        }
+        while(count < DBarray.length)
+        {
+        	
+        
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet rs = null;
+        
+        //커넥션 객체 생성, 스테이먼트 객체 생성
+        try {
+            connection = DriverManager.getConnection(url, dbUserId, dbPassword);
+
+            for(int i = count; i < 900 + count; ++i)
+            {
+            	if(count == DBarray.length)
+            	{
+            		break;
+            	}
+            	count++;
+            	String sql = "insert into wifiinfo (DISTANCE, MGR_NO, WRDOFC, MAIN_NM, ADRES1, ADRES2, "+
+                		"INSTL_FLOOR, INSTL_TY, INSTL_MBY, SVC_SE, CMCWR, CNSTC_YEAR, INOUT_DOOR, REMARS3, "+
+                		"LAT, LNT, WORK_DTTM"+
+                        ")values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                preparedStatement = connection.prepareStatement(sql);
+                preparedStatement.setDouble(1, 0.0);
+                for(int j = 2; j < 18; ++j)
+                {              	
+                    preparedStatement.setString(j, DBarray[i].GetParam(j-2));
+                }
+                //쿼리실행
+                int affectedRows = preparedStatement.executeUpdate();
+                if(affectedRows > 0)
+                {
+                    System.out.println(i);
+                }
+                else
+                {
+                    System.out.println("실패");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            //객체 연결 해제
+            try {
+                if(rs!= null && !rs.isClosed()){
+                    rs.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            try {
+                if(preparedStatement!= null && !preparedStatement.isClosed()){
+                    preparedStatement.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            try {
+                if(connection != null && !connection.isClosed()){
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        	}
+        }
+	}
+	
 	//두점 사이의 거리를 구하고 가까운 거리로 정렬 후, index page에 뿌리고 히스토리 DB에 insert한다.
 	public static void FindaroundWifi(double x, double y)
 	{
@@ -205,119 +300,13 @@ public class DBManager {
 				}
 			}
 			//WifiInfo insert부분
-			InsertWifiInfo(DBarray);
+			//InsertWifiInfo(DBarray);
 			
 			//history insert 부분
-			InsertHistoryDB(x,y);
+			//InsertHistoryDB(x,y);
 		}
 	}
-	private static void InsertWifiInfo(DistanceDB[] DBarray)
-	{
-		//db접속을 위한 5가지
-        //1. ip(domain)
-        //2. port
-        //3. 계정
-        //4. password
-        //5. instance
-        //jdbc:DB_VENDER://IP_ADDR:IP_PORT/INSTANCE;
-        String url = "jdbc:mariadb://127.0.0.1:3306/wifiinfo";
-        String dbUserId = "root";
-        String dbPassword = "232723";
-
-        //1.드라이버 로드
-        //2. 커넥션 객체 생성
-        //3. 스테이먼트 객체 생성
-        //4. 쿼리 실행
-        //5. 결과 수행
-        //6. 객체 연결 해제 (close)
-
-        //드라이버 로드
-        try{
-            Class.forName("org.mariadb.jdbc.Driver");
-        }
-        catch (ClassNotFoundException e){
-            e.printStackTrace();
-        }
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet rs = null;
-
-
-        //커넥션 객체 생성, 스테이먼트 객체 생성
-        try {
-            connection = DriverManager.getConnection(url, dbUserId, dbPassword);
-
-            for(int i = 0; i < 20; ++i)
-            {
-            	String sql = "insert into wifiinfo (distance, MGR_NO, WRDOFC, MAIN_NM, ADRES1, ADRES2, "+
-                		"INSTL_FLOOR, INSTL_TY, INSTL_MBY, SVC_SE, CMCWR, CNSTC_YEAR, INOUT_DOOR, REMARS3, "+
-                		"LAT, LNT, WORK_DTTM"+
-                        ")values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-
-                preparedStatement = connection.prepareStatement(sql);
-                preparedStatement.setFloat(1, (float)DBarray[i].distance);
-                for(int j = 0; j < 15; ++j)
-                {
-                	if(Keys.arrKey[j].equals("X_SWIFI_CNSTC_YEAR"))
-                	{
-                		int year = Integer.valueOf(DBarray[i].DB.GetParam(j));
-                		preparedStatement.setInt(j, year);
-                		
-                	}
-                	else if(Keys.arrKey[j].equals("LAT") || Keys.arrKey[j].equals("LNT"))
-                	{
-                		double xy = Double.valueOf(DBarray[i].DB.GetParam(j));
-                		preparedStatement.setDouble(j, xy);
-                	}
-                	else if(Keys.arrKey[j].equals("WORK_DTTM"))
-                	{
-                		Date d = new Date(Long.valueOf(DBarray[i].DB.GetParam(j)));
-                		preparedStatement.setDate(j, d);
-                	}
-                	else
-                	{
-                    	preparedStatement.setString(j, DBarray[i].DB.GetParam(j));
-                	}
-                }
-                //쿼리실행
-                int affectedRows = preparedStatement.executeUpdate();
-
-                if(affectedRows > 0)
-                {
-                    System.out.println("실행 성공");
-                }
-                else
-                {
-                    System.out.println("실패");
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            //객체 연결 해제
-            try {
-                if(rs!= null && !rs.isClosed()){
-                    rs.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                if(preparedStatement!= null && !preparedStatement.isClosed()){
-                    preparedStatement.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                if(connection != null && !connection.isClosed()){
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-	}
+	
 	private static void InsertHistoryDB(double x, double y)
 	{
 		//db접속을 위한 5가지
