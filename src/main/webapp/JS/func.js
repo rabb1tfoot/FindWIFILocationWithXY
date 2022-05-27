@@ -5,6 +5,8 @@
 const COORDS = "coords";
 var x = "123";
 var y = "321";
+var arrWifiInfo = new Array();
+var arrHistory = new Array();
 function handleGeoSucces(position) {
 x = position.coords.latitude;
 y = position.coords.longitude;
@@ -29,11 +31,31 @@ function GetLoc() {
 }
 
 function FindaroundWifi(){
-	javaCode.DBManager.FindaroundWifi(x,y);
 	
+	var wifiTable = document.getElementById("wifiInfoTable");
+	var historyTable = document.getElementById("historyTable");
 	//wifi정보 업데이트
+	//GetData();
+	//history 저장	
+}
+
+function GetData()
+{
+	const mysql = require('mysql');
 	
-	//history 저장
+	const pool = mysql.createConnection({
+		host : 'localhost',
+		user : 'root',
+		database : 'wifiinfo',
+		password : '232723',
+	});
+	connection.connect();
+	connection.query("SELECT * ", function(err, results) {
+		
+	});
+	connection.end();
 	
 }
+
+
 
