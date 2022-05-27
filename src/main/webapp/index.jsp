@@ -18,7 +18,7 @@
 LAT : <input id="locationX" required value="0.0"/>
 LNT : <input id="locationY" required value="0.0"/>
 <button id="btnFindloc" type="button" onclick="GetLoc()">내 위치 가져오기</button>
-<input required type="submit" value="근처 wifi 정보 찾기"/>
+<input required type="submit" value="근처 wifi 정보 찾기" onclick="FindaroundWifi()" />
 </form>
 
 
