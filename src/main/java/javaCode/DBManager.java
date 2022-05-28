@@ -66,33 +66,86 @@ class Keys
 	}};
 }
 
-class DistanceDB
-{
-	double distance;
-	WifiInfo DB;
-	
-	public DistanceDB(double distance, WifiInfo DB)
-	{
-		this.distance = distance;
-		this.DB = DB;
-	}
-}
-
 public class DBManager {
 	
 	private static boolean isFillend = false;
 	public static WifiInfo[] DB;
 	private static int finalPage;
-	private static int historyCount = 0;
+	private static List<WifiInfo> wifiInfos;
+	private static boolean isSetdistance = false;
+	
+	public static boolean IsSetDistance()
+	{
+		return isSetdistance;
+	}
+	
+	public static List<WifiInfo> GetwifiInfos()
+	{
+		return wifiInfos;
+	}
 	
 	public static int GetfinalPage()
 	{
 		return finalPage;
 	}
 	
-	public static boolean IsFillend()
+	public static boolean IsSaved()
 	{
-		return isFillend;
+		boolean returnvalue = false;
+        String url = "jdbc:mariadb://127.0.0.1:3306/wifiinfo";
+        String dbUserId = "root";
+        String dbPassword = "232723";
+       
+        try{
+            Class.forName("org.mariadb.jdbc.Driver");
+        }
+        catch (ClassNotFoundException e){
+            e.printStackTrace();
+        }
+        
+        	
+        
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet rs = null;
+        //커넥션 객체 생성, 스테이먼트 객체 생성
+        try {
+            connection = DriverManager.getConnection(url, dbUserId, dbPassword);          
+            String sql = "select COUNT(*) as cnt from wifiinfo";
+            preparedStatement = connection.prepareStatement(sql);
+            rs = preparedStatement.executeQuery();
+            if(rs.getLong("cnt") > 0)
+            {
+            	returnvalue = true;
+            }
+                
+        	}catch (SQLException e) {
+            e.printStackTrace();
+            } finally {
+            //객체 연결 해제
+            try {
+                if(rs!= null && !rs.isClosed()){
+                    rs.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            try {
+                if(preparedStatement!= null && !preparedStatement.isClosed()){
+                    preparedStatement.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            try {
+                if(connection != null && !connection.isClosed()){
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return returnvalue;
 	}
 	
 	//Data값 불러오기
@@ -148,7 +201,15 @@ public class DBManager {
 		 		DB[i + count * 1000] = new WifiInfo();
 		 		for(int j = 0; j < Keys.arrKey.length; ++j)
 		 		{
-		 			DB[i].SetParam(j, obj.get(Keys.arrKey[j]).toString());
+		 			if(j == 13 || j == 14)
+		 			{
+		 				String[] temp = obj.get(Keys.arrKey[j]).toString().split("\"");
+			 			DB[i].SetParam(j, temp[1]);
+		 			}
+		 			else
+		 			{
+		 				DB[i].SetParam(j, obj.get(Keys.arrKey[j]).toString());
+		 			}
 		 		}
 		 	}
 		 	
@@ -197,12 +258,13 @@ public class DBManager {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet rs = null;
+        int OldCount = count;
         
         //커넥션 객체 생성, 스테이먼트 객체 생성
         try {
             connection = DriverManager.getConnection(url, dbUserId, dbPassword);
 
-            for(int i = count; i < 900 + count; ++i)
+            for(int i = count; i < 1000 + OldCount; ++i)
             {
             	if(count == DBarray.length)
             	{
@@ -259,55 +321,103 @@ public class DBManager {
         }
 	}
 	
-	//두점 사이의 거리를 구하고 가까운 거리로 정렬 후, index page에 뿌리고 히스토리 DB에 insert한다.
+	//DB 다 가져와서 distance 구한뒤 update해준다. select limit 20개 해준다.
 	public static void FindaroundWifi(double x, double y)
 	{
-		if(DB == null)
-		{
-			System.out.println("DB is null");
-			return;
-		}
-		
-		DistanceDB[] DBarray = new DistanceDB[20];
-		
-		for(int i = 0; i <DB.length; ++i)
-		{
-			double dbX = Double.parseDouble(DB[i].GetParam(Keys.mapKey.get("LAT")));
-			double dbY = Double.parseDouble(DB[i].GetParam(Keys.mapKey.get("LNT")));
-			
-			double distance = Math.sqrt(Math.pow(dbX - x, 2) + Math.pow(dbY - y, 2));
-			
-			for(int j = 0; j < 20; ++j)
-			{
-				if(DBarray[j] == null)
-				{
-					DBarray[j] = new DistanceDB(distance, DB[i]);
-					
-				}
-				//바로바로 비교하면서 20개보다 가까운값이면 해당자리에 넣고 한칸씩 민다.
-				if(DBarray[j].distance > distance)
-				{
-					DistanceDB temp = DBarray[j];
-					DBarray[j] = new DistanceDB(distance, DB[i]);
-					
-					for(int k = 18; k > j; --k)
-					{
-						if(DBarray[k] == null)
-						{
-							continue;
-						}
-						DBarray[k+1] = DBarray[k];
-					}
-					
-					break;
-				}
-			}
-			//WifiInfo insert부분
-			//InsertWifiInfo(DBarray);
-			
-			//history insert 부분
-			//InsertHistoryDB(x,y);
-		}
+		//db접속을 위한 5가지
+        //1. ip(domain)
+        //2. port
+        //3. 계정
+        //4. password
+        //5. instance
+        //jdbc:DB_VENDER://IP_ADDR:IP_PORT/INSTANCE;
+        String url = "jdbc:mariadb://127.0.0.1:3306/wifiinfo";
+        String dbUserId = "root";
+        String dbPassword = "232723";
+
+        //1.드라이버 로드
+        //2. 커넥션 객체 생성
+        //3. 스테이먼트 객체 생성
+        //4. 쿼리 실행
+        //5. 결과 수행
+        //6. 객체 연결 해제 (close)
+
+        //드라이버 로드
+        try{
+            Class.forName("org.mariadb.jdbc.Driver");
+        }
+        catch (ClassNotFoundException e){
+            e.printStackTrace();
+        }
+        
+        	
+        
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet rs = null;
+        //커넥션 객체 생성, 스테이먼트 객체 생성
+        try {
+            connection = DriverManager.getConnection(url, dbUserId, dbPassword);          
+            String sql = "Select LAT,LNT FROM wifiinfo";
+            preparedStatement = connection.prepareStatement(sql);
+            rs = preparedStatement.executeQuery();
+            while(rs.next()) // Double.parseDouble시 에러나서 분기를 나눔
+            {
+            	Double x2 = Double.parseDouble(rs.getString("LNT")); //좌표정보가 거꾸로 되어있어서 반대 킷값을 넣어야 옳은 데이터가 가져옴
+                Double y2 = Double.parseDouble(rs.getString("LAT"));
+                
+                Double distance = Math.sqrt(Math.pow(x - x2, 2) + Math.pow(y - y2, 2));
+                
+                sql = "update wifiinfo set DISTANCE = ? WHERE LAT = ? AND LNT = ?";
+                preparedStatement = connection.prepareStatement(sql);
+                preparedStatement.setDouble(1, distance);
+                preparedStatement.setDouble(2, y2);
+                preparedStatement.setDouble(3, x2);
+                int affectedRows = preparedStatement.executeUpdate();
+            }
+            sql = "Select * FROM wifiinfo ORDER BY DISTANCE ASC LIMIT 20";
+            preparedStatement = connection.prepareStatement(sql);
+            rs = preparedStatement.executeQuery();
+            wifiInfos = new ArrayList<WifiInfo>();
+            while(rs.next())
+            {
+            	WifiInfo db = new WifiInfo();
+            	db.SetParam(0, String.valueOf(rs.getDouble(1)));
+            	for(int i = 1; i < db.ParamSize(); ++i)
+            	{
+            		db.SetParam(i, String.valueOf(rs.getString(i+1)));
+            	}
+            	wifiInfos.add(db);
+            } 
+            
+            
+        	}catch (SQLException e) {
+            e.printStackTrace();
+            } finally {
+            //객체 연결 해제
+            try {
+                if(rs!= null && !rs.isClosed()){
+                    rs.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            try {
+                if(preparedStatement!= null && !preparedStatement.isClosed()){
+                    preparedStatement.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            try {
+                if(connection != null && !connection.isClosed()){
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        isSetdistance = true;
 	}
 	
 	public static void InsertHistoryDB(double x, double y)
@@ -391,7 +501,6 @@ public class DBManager {
                 e.printStackTrace();
             }
         }
-        historyCount++;
     }
 	
 	public static List<History> GetHistoryDB()

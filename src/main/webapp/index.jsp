@@ -1,4 +1,6 @@
 <%@page import="java.util.List"%>
+<%@page import="javaCode.DBManager"%>
+<%@page import="javaCode.WifiInfo"%>
 <%@page language="java" contentType="text/html; charset=EUC-KR"
     pageEncoding="UTF-8"%>
 <!DOCTYPE html>
@@ -14,7 +16,7 @@
 <a href = "http://localhost:8080/JSPStudy/index.jsp">홈</a> | <a href = "http://localhost:8080/JSPStudy/history.jsp">위치 히스토리 목록</a> 
 | <a href = "http://localhost:8080/JSPStudy/findInfo.jsp">Open API 와이파이 정보 가져오기</a>
 <p></p>
-<form action ="postWifi" method="post">
+<form action="insertWifiInfo.jsp">
 LAT : <input id="locationX" name="locationX"  required value="0.0"/>
 LNT : <input id="locationY" name="locationY" required value="0.0"/>
 <button id="btnFindloc" type="button" onclick="GetLoc()">내 위치 가져오기</button>
@@ -29,25 +31,51 @@ LNT : <input id="locationY" name="locationY" required value="0.0"/>
     <th>자치구</th>
     <th>와이파이명</th>
     <th>도로명주소</th>
+    <th>설치위치(층)</th>
     <th>상세주소</th>
     <th>설치유형</th>
     <th>설치기관</th>
     <th>서비스</th>
-    <th>구분</th>
+    <th>망종류</th>
+    <th>설치년도</th>
     <th>실내외구분</th>
     <th>WIFI접속환경</th>
-    <th>X좌표</th>
     <th>Y좌표</th>
-    <th>작업일</th>
+    <th>X좌표</th>
+    <th>작업</th>
   </tr>
-  <tr>
   <%
-  if(!javaCode.DBManager.IsFillend())
-  {
-	  out.write("<td colspan=\"15\">우선 와이파이 정보를 불러와주세요</td>");
-  } 
+  //if(!javaCode.DBManager.IsSaved())
+  //{
+	//  out.write("<td colspan=\"15\">우선 와이파이 정보를 불러와주세요</td>");
+  //}
+  //else
+  //{
+	  if(DBManager.IsSetDistance())
+	  {
+		  List<WifiInfo> infos = DBManager.GetwifiInfos();
+		  
+		  for(int i = 0; i < infos.size(); ++i)
+		  {
+			  %>
+			  <tr>
+			  <%
+			  for(int j = 0; j < infos.get(i).ParamSize(); ++j)
+			  {
+				  %>
+				  <th>
+				  <%=infos.get(i).GetParam(j)%>
+				  </th>
+				  <%
+			  }
+			  %>
+			  </tr>
+			  <%
+		  }
+	  }
+	  
+  //}
   %>
-  </tr>
 </table>
 
 <%--

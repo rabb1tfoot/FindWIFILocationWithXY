@@ -41,7 +41,7 @@ if(arrHis != null)
 			if(j == 4)
 			{
 				%>
-				<a href="delete.jsp?id=<%= arrHis.get(i).GetParam(0)%>">삭제하기</a>
+				<button><a href="delete.jsp?id=<%= arrHis.get(i).GetParam(0)%>">삭제하기</a></button>
 				<%
 			}
 			else

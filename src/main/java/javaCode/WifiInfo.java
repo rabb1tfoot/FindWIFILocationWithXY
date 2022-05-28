@@ -3,6 +3,7 @@ package javaCode;
 public class WifiInfo
 {
 	private String[] param;
+	//distance
 	/*String X_SWIFI_MGR_NO;
 	String X_SWIFI_WRDOFC;
 	String X_SWIFI_MAIN_NM;
@@ -21,7 +22,11 @@ public class WifiInfo
 	String WORK_DTTM;*/
 	public WifiInfo()
 	{
-		this.param = new String[16];
+		this.param = new String[17];
+	}
+	public int ParamSize()
+	{
+		return this.param.length;
 	}
 	public String GetParam(int index)
 	{
