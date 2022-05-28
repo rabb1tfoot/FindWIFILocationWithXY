@@ -14,7 +14,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Date;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -81,6 +83,7 @@ public class DBManager {
 	private static boolean isFillend = false;
 	public static WifiInfo[] DB;
 	private static int finalPage;
+	private static int historyCount = 0;
 	
 	public static int GetfinalPage()
 	{
@@ -307,7 +310,7 @@ public class DBManager {
 		}
 	}
 	
-	private static void InsertHistoryDB(double x, double y)
+	public static void InsertHistoryDB(double x, double y)
 	{
 		//db접속을 위한 5가지
         //1. ip(domain)
@@ -347,8 +350,8 @@ public class DBManager {
                     "values(?, ?,now())";
 
             preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setDouble(2, x);
-            preparedStatement.setDouble(3, y);
+            preparedStatement.setDouble(1, x);
+            preparedStatement.setDouble(2, y);
 
             //쿼리실행
             int affectedRows = preparedStatement.executeUpdate();
@@ -388,7 +391,172 @@ public class DBManager {
                 e.printStackTrace();
             }
         }
+        historyCount++;
     }
+	
+	public static List<History> GetHistoryDB()
+	{
+		List<History> listHis = new ArrayList<History>();
+		//db접속을 위한 5가지
+        //1. ip(domain)
+        //2. port
+        //3. 계정
+        //4. password
+        //5. instance
+        //jdbc:DB_VENDER://IP_ADDR:IP_PORT/INSTANCE;
+        String url = "jdbc:mariadb://127.0.0.1:3306/wifiinfo";
+        String dbUserId = "root";
+        String dbPassword = "232723";
+
+        //1.드라이버 로드
+        //2. 커넥션 객체 생성
+        //3. 스테이먼트 객체 생성
+        //4. 쿼리 실행
+        //5. 결과 수행
+        //6. 객체 연결 해제 (close)
+
+        //드라이버 로드
+        try{
+            Class.forName("org.mariadb.jdbc.Driver");
+        }
+        catch (ClassNotFoundException e){
+            e.printStackTrace();
+        }
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet rs = null;
+        //커넥션 객체 생성, 스테이먼트 객체 생성
+        try {
+            connection = DriverManager.getConnection(url, dbUserId, dbPassword);
+        	String sql = "select ID, LAT, LNT, SEARCH_DT " +
+                   "from HISTORY";
+            preparedStatement = connection.prepareStatement(sql);
+
+            //쿼리실행
+            rs = preparedStatement.executeQuery();
+
+            //결과수행
+            while(rs.next())
+            {
+            	History arrHis = new History();
+            	arrHis.SetParam(0, rs.getString("ID"));
+            	arrHis.SetParam(1, rs.getString("LAT"));
+            	arrHis.SetParam(2, rs.getString("LNT"));
+            	arrHis.SetParam(3, rs.getString("SEARCH_DT"));
+            	
+            	listHis.add(arrHis);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            //객체 연결 해제
+            try {
+                if(rs!= null && !rs.isClosed()){
+                    rs.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            try {
+                if(preparedStatement!= null && !preparedStatement.isClosed()){
+                    preparedStatement.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            try {
+                if(connection != null && !connection.isClosed()){
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+		
+		return listHis;
+	}
+	
+	public static void DelHistory(String id)
+	{
+		List<History> listHis = new ArrayList<History>();
+		//db접속을 위한 5가지
+        //1. ip(domain)
+        //2. port
+        //3. 계정
+        //4. password
+        //5. instance
+        //jdbc:DB_VENDER://IP_ADDR:IP_PORT/INSTANCE;
+        String url = "jdbc:mariadb://127.0.0.1:3306/wifiinfo";
+        String dbUserId = "root";
+        String dbPassword = "232723";
+
+        //1.드라이버 로드
+        //2. 커넥션 객체 생성
+        //3. 스테이먼트 객체 생성
+        //4. 쿼리 실행
+        //5. 결과 수행
+        //6. 객체 연결 해제 (close)
+
+        //드라이버 로드
+        try{
+            Class.forName("org.mariadb.jdbc.Driver");
+        }
+        catch (ClassNotFoundException e){
+            e.printStackTrace();
+        }
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet rs = null;
+        //커넥션 객체 생성, 스테이먼트 객체 생성
+        try {
+            connection = DriverManager.getConnection(url, dbUserId, dbPassword);
+            System.out.println("삭제 중");
+            String sql = "delete from HISTORY where id = ?";
+            preparedStatement = connection.prepareStatement(sql);
+
+            preparedStatement.setString(1, id);
+
+            //쿼리실행
+            int affectedRows = preparedStatement.executeUpdate();
+
+            if(affectedRows > 0)
+            {
+                System.out.println("삭제 성공");
+            }
+            else
+            {
+                System.out.println("삭제 실패");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            //객체 연결 해제
+            try {
+                if(rs!= null && !rs.isClosed()){
+                    rs.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            try {
+                if(preparedStatement!= null && !preparedStatement.isClosed()){
+                    preparedStatement.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            try {
+                if(connection != null && !connection.isClosed()){
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+	
 	private static void CheckReachEndPage(String[] startEndPage, int finalPage)
 	{
 		int startpage = Integer.parseInt(startEndPage[0]);

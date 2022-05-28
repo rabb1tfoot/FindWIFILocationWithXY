@@ -35,23 +35,25 @@ function FindaroundWifi(){
 	var wifiTable = document.getElementById("wifiInfoTable");
 	var historyTable = document.getElementById("historyTable");
 	//wifi정보 업데이트
-	//GetData();
+	//GetData(wifiTable, historyTable);
 	//history 저장	
 }
 
 function GetData()
 {
-	const mysql = require('mysql');
 	
-	const pool = mysql.createConnection({
+	const db = window.openDatebase('')
+	const mysql = require('mysql');
+
+	const connection = mysql.createConnection({
 		host : 'localhost',
 		user : 'root',
 		database : 'wifiinfo',
 		password : '232723',
 	});
 	connection.connect();
-	connection.query("SELECT * ", function(err, results) {
-		
+	connection.query("SELECT LAT,LNT FROM wifiInfo ", function(err, results) {
+		console.log(results);
 	});
 	connection.end();
 	

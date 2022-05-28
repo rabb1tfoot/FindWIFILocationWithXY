@@ -14,11 +14,11 @@
 <a href = "http://localhost:8080/JSPStudy/index.jsp">홈</a> | <a href = "http://localhost:8080/JSPStudy/history.jsp">위치 히스토리 목록</a> 
 | <a href = "http://localhost:8080/JSPStudy/findInfo.jsp">Open API 와이파이 정보 가져오기</a>
 <p></p>
-<form>
-LAT : <input id="locationX" required value="0.0"/>
-LNT : <input id="locationY" required value="0.0"/>
+<form action ="postWifi" method="post">
+LAT : <input id="locationX" name="locationX"  required value="0.0"/>
+LNT : <input id="locationY" name="locationY" required value="0.0"/>
 <button id="btnFindloc" type="button" onclick="GetLoc()">내 위치 가져오기</button>
-<input required type="submit" value="근처 wifi 정보 찾기" onclick="FindaroundWifi()" />
+<input required type="submit" value="근처 wifi 정보 찾기"/>
 </form>
 
 
