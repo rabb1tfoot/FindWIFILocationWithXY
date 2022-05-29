@@ -67,7 +67,7 @@ LNT : <input id="locationY" name="locationY" required value="0.0"/>
   <%
   if(!javaCode.DBManager.IsSaved())
   {
-	  out.write("<td colspan=\"15\">우선 와이파이 정보를 불러와주세요</td>");
+	  out.write("<tr><td colspan=\"17\">우선 와이파이 정보를 불러와주세요</td></tr>");
   }
   else
   {

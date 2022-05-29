@@ -74,6 +74,58 @@ public class DBManager {
 	private static List<WifiInfo> wifiInfos;
 	private static boolean isSetdistance = false;
 	
+	//SQL_DATABASE
+	private static String  url = "jdbc:mariadb://127.0.0.1:3306/wifiinfo";
+	private static String dbUserId = "root";
+	private static String dbPassword = "232723";
+	
+	private static Connection connection = null;
+	private static PreparedStatement preparedStatement = null;
+	private static ResultSet rs = null;
+	
+    private static void InitDB()
+    {
+    	try{
+            Class.forName("org.mariadb.jdbc.Driver");
+        }
+        catch (ClassNotFoundException e){
+            e.printStackTrace();
+        }
+    	
+    	connection = null;
+        preparedStatement = null;
+        rs = null;
+    }
+    
+    private static void ReleaseDB()
+    {
+            //객체 연결 해제
+            try {
+                if(rs!= null && !rs.isClosed()){
+                    rs.close();
+                    rs = null;
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            try {
+                if(preparedStatement!= null && !preparedStatement.isClosed()){
+                    preparedStatement.close();
+                    preparedStatement = null;
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            try {
+                if(connection != null && !connection.isClosed()){
+                    connection.close();
+                    connection = null;
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+    }
+    
 	public static boolean IsSetDistance()
 	{
 		return isSetdistance;
@@ -92,23 +144,7 @@ public class DBManager {
 	public static boolean IsSaved()
 	{
 		boolean returnvalue = false;
-        String url = "jdbc:mariadb://127.0.0.1:3306/wifiinfo";
-        String dbUserId = "root";
-        String dbPassword = "232723";
-       
-        try{
-            Class.forName("org.mariadb.jdbc.Driver");
-        }
-        catch (ClassNotFoundException e){
-            e.printStackTrace();
-        }
-        
-        	
-        
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet rs = null;
-        //커넥션 객체 생성, 스테이먼트 객체 생성
+        InitDB();
         try {
             connection = DriverManager.getConnection(url, dbUserId, dbPassword);          
             String sql = "select COUNT(*) as cnt from wifiinfo";
@@ -124,30 +160,8 @@ public class DBManager {
             }
         	}catch (SQLException e) {
             e.printStackTrace();
-            } finally {
-            //객체 연결 해제
-            try {
-                if(rs!= null && !rs.isClosed()){
-                    rs.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                if(preparedStatement!= null && !preparedStatement.isClosed()){
-                    preparedStatement.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                if(connection != null && !connection.isClosed()){
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
+            } 
+        ReleaseDB();
         return returnvalue;
 	}
 	
@@ -207,11 +221,11 @@ public class DBManager {
 		 			if(j == 13 || j == 14)
 		 			{
 		 				String[] temp = obj.get(Keys.arrKey[j]).toString().split("\"");
-			 			DB[i].SetParam(j, temp[1]);
+			 			DB[i + count * 1000].SetParam(j, temp[1]);
 		 			}
 		 			else
 		 			{
-		 				DB[i].SetParam(j, obj.get(Keys.arrKey[j]).toString());
+		 				DB[i + count * 1000].SetParam(j, obj.get(Keys.arrKey[j]).toString());
 		 			}
 		 		}
 		 	}
@@ -222,45 +236,16 @@ public class DBManager {
 		 	} 
 		 	count++;
 		}
-		//DBinsertWifiInfo
+		//DB저장
  		InsertWifiInfo(DB);
  		
 	}
 	private static void InsertWifiInfo(WifiInfo[] DBarray)
 	{ 
         int count = 0;
-		//db접속을 위한 5가지
-        //1. ip(domain)
-        //2. port
-        //3. 계정
-        //4. password
-        //5. instance
-        //jdbc:DB_VENDER://IP_ADDR:IP_PORT/INSTANCE;
-        String url = "jdbc:mariadb://127.0.0.1:3306/wifiinfo";
-        String dbUserId = "root";
-        String dbPassword = "232723";
-
-        //1.드라이버 로드
-        //2. 커넥션 객체 생성
-        //3. 스테이먼트 객체 생성
-        //4. 쿼리 실행
-        //5. 결과 수행
-        //6. 객체 연결 해제 (close)
-
-        //드라이버 로드
-        try{
-            Class.forName("org.mariadb.jdbc.Driver");
-        }
-        catch (ClassNotFoundException e){
-            e.printStackTrace();
-        }
+		InitDB();
         while(count < DBarray.length)
         {
-        	
-        
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet rs = null;
         int OldCount = count;
         
         //커넥션 객체 생성, 스테이먼트 객체 생성
@@ -279,85 +264,24 @@ public class DBManager {
                 		"LAT, LNT, WORK_DTTM"+
                         ")values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
                 preparedStatement = connection.prepareStatement(sql);
-                preparedStatement.setDouble(1, 0.0);
+                preparedStatement.setDouble(1, 0.0); //거리는 현재시점에서 모름
                 for(int j = 2; j < 18; ++j)
                 {              	
                     preparedStatement.setString(j, DBarray[i].GetParam(j-2));
                 }
-                //쿼리실행
-                int affectedRows = preparedStatement.executeUpdate();
-                if(affectedRows > 0)
-                {
-                    System.out.println(i);
-                }
-                else
-                {
-                    System.out.println("실패");
-                }
+                preparedStatement.executeUpdate();
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            //객체 연결 해제
-            try {
-                if(rs!= null && !rs.isClosed()){
-                    rs.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                if(preparedStatement!= null && !preparedStatement.isClosed()){
-                    preparedStatement.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                if(connection != null && !connection.isClosed()){
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        	}
+        } 
+        ReleaseDB();
         }
 	}
 	
 	//DB 다 가져와서 distance 구한뒤 update해준다. select limit 20개 해준다.
 	public static void FindaroundWifi(double x, double y)
 	{
-		//db접속을 위한 5가지
-        //1. ip(domain)
-        //2. port
-        //3. 계정
-        //4. password
-        //5. instance
-        //jdbc:DB_VENDER://IP_ADDR:IP_PORT/INSTANCE;
-        String url = "jdbc:mariadb://127.0.0.1:3306/wifiinfo";
-        String dbUserId = "root";
-        String dbPassword = "232723";
-
-        //1.드라이버 로드
-        //2. 커넥션 객체 생성
-        //3. 스테이먼트 객체 생성
-        //4. 쿼리 실행
-        //5. 결과 수행
-        //6. 객체 연결 해제 (close)
-
-        //드라이버 로드
-        try{
-            Class.forName("org.mariadb.jdbc.Driver");
-        }
-        catch (ClassNotFoundException e){
-            e.printStackTrace();
-        }
-        
-        	
-        
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet rs = null;
+		InitDB();
         //커넥션 객체 생성, 스테이먼트 객체 생성
         try {
             connection = DriverManager.getConnection(url, dbUserId, dbPassword);          
@@ -376,7 +300,7 @@ public class DBManager {
                 preparedStatement.setDouble(1, distance);
                 preparedStatement.setDouble(2, y2);
                 preparedStatement.setDouble(3, x2);
-                int affectedRows = preparedStatement.executeUpdate();
+                preparedStatement.executeUpdate();
             }
             sql = "Select * FROM wifiinfo ORDER BY DISTANCE ASC LIMIT 20";
             preparedStatement = connection.prepareStatement(sql);
@@ -396,158 +320,39 @@ public class DBManager {
             
         	}catch (SQLException e) {
             e.printStackTrace();
-            } finally {
-            //객체 연결 해제
-            try {
-                if(rs!= null && !rs.isClosed()){
-                    rs.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                if(preparedStatement!= null && !preparedStatement.isClosed()){
-                    preparedStatement.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                if(connection != null && !connection.isClosed()){
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
+            } 
+        ReleaseDB();
         isSetdistance = true;
 	}
 	
 	public static void InsertHistoryDB(double x, double y)
 	{
-		//db접속을 위한 5가지
-        //1. ip(domain)
-        //2. port
-        //3. 계정
-        //4. password
-        //5. instance
-        //jdbc:DB_VENDER://IP_ADDR:IP_PORT/INSTANCE;
-        String url = "jdbc:mariadb://127.0.0.1:3306/wifiinfo";
-        String dbUserId = "root";
-        String dbPassword = "232723";
-
-        //1.드라이버 로드
-        //2. 커넥션 객체 생성
-        //3. 스테이먼트 객체 생성
-        //4. 쿼리 실행
-        //5. 결과 수행
-        //6. 객체 연결 해제 (close)
-
-        //드라이버 로드
-        try{
-            Class.forName("org.mariadb.jdbc.Driver");
-        }
-        catch (ClassNotFoundException e){
-            e.printStackTrace();
-        }
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet rs = null;
-
-
-        //커넥션 객체 생성, 스테이먼트 객체 생성
+		InitDB();
         try {
             connection = DriverManager.getConnection(url, dbUserId, dbPassword);
 
             String sql = "insert into history (lat, lnt, search_dt)\n" +
                     "values(?, ?,now())";
-
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setDouble(1, x);
             preparedStatement.setDouble(2, y);
-
-            //쿼리실행
-            int affectedRows = preparedStatement.executeUpdate();
-
-            if(affectedRows > 0)
-            {
-                System.out.println("실행 성공");
-            }
-            else
-            {
-                System.out.println("실패");
-            }
-
+            preparedStatement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            //객체 연결 해제
-            try {
-                if(rs!= null && !rs.isClosed()){
-                    rs.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                if(preparedStatement!= null && !preparedStatement.isClosed()){
-                    preparedStatement.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                if(connection != null && !connection.isClosed()){
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
+        } 
+        ReleaseDB();
     }
 	
 	public static List<History> GetHistoryDB()
 	{
 		List<History> listHis = new ArrayList<History>();
-		//db접속을 위한 5가지
-        //1. ip(domain)
-        //2. port
-        //3. 계정
-        //4. password
-        //5. instance
-        //jdbc:DB_VENDER://IP_ADDR:IP_PORT/INSTANCE;
-        String url = "jdbc:mariadb://127.0.0.1:3306/wifiinfo";
-        String dbUserId = "root";
-        String dbPassword = "232723";
-
-        //1.드라이버 로드
-        //2. 커넥션 객체 생성
-        //3. 스테이먼트 객체 생성
-        //4. 쿼리 실행
-        //5. 결과 수행
-        //6. 객체 연결 해제 (close)
-
-        //드라이버 로드
-        try{
-            Class.forName("org.mariadb.jdbc.Driver");
-        }
-        catch (ClassNotFoundException e){
-            e.printStackTrace();
-        }
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet rs = null;
-        //커넥션 객체 생성, 스테이먼트 객체 생성
+		InitDB();
         try {
             connection = DriverManager.getConnection(url, dbUserId, dbPassword);
-        	String sql = "select ID, LAT, LNT, SEARCH_DT " +
-                   "from HISTORY";
+        	String sql = "select ID, LAT, LNT, SEARCH_DT from HISTORY";
             preparedStatement = connection.prepareStatement(sql);
-
-            //쿼리실행
             rs = preparedStatement.executeQuery();
 
-            //결과수행
             while(rs.next())
             {
             	History arrHis = new History();
@@ -555,36 +360,12 @@ public class DBManager {
             	arrHis.SetParam(1, rs.getString("LAT"));
             	arrHis.SetParam(2, rs.getString("LNT"));
             	arrHis.SetParam(3, rs.getString("SEARCH_DT"));
-            	
             	listHis.add(arrHis);
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            //객체 연결 해제
-            try {
-                if(rs!= null && !rs.isClosed()){
-                    rs.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                if(preparedStatement!= null && !preparedStatement.isClosed()){
-                    preparedStatement.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                if(connection != null && !connection.isClosed()){
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
+        } ReleaseDB();
 		
 		return listHis;
 	}
@@ -592,81 +373,17 @@ public class DBManager {
 	public static void DelHistory(String id)
 	{
 		List<History> listHis = new ArrayList<History>();
-		//db접속을 위한 5가지
-        //1. ip(domain)
-        //2. port
-        //3. 계정
-        //4. password
-        //5. instance
-        //jdbc:DB_VENDER://IP_ADDR:IP_PORT/INSTANCE;
-        String url = "jdbc:mariadb://127.0.0.1:3306/wifiinfo";
-        String dbUserId = "root";
-        String dbPassword = "232723";
-
-        //1.드라이버 로드
-        //2. 커넥션 객체 생성
-        //3. 스테이먼트 객체 생성
-        //4. 쿼리 실행
-        //5. 결과 수행
-        //6. 객체 연결 해제 (close)
-
-        //드라이버 로드
-        try{
-            Class.forName("org.mariadb.jdbc.Driver");
-        }
-        catch (ClassNotFoundException e){
-            e.printStackTrace();
-        }
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet rs = null;
-        //커넥션 객체 생성, 스테이먼트 객체 생성
+		InitDB();
         try {
             connection = DriverManager.getConnection(url, dbUserId, dbPassword);
             System.out.println("삭제 중");
             String sql = "delete from HISTORY where id = ?";
             preparedStatement = connection.prepareStatement(sql);
-
             preparedStatement.setString(1, id);
-
-            //쿼리실행
-            int affectedRows = preparedStatement.executeUpdate();
-
-            if(affectedRows > 0)
-            {
-                System.out.println("삭제 성공");
-            }
-            else
-            {
-                System.out.println("삭제 실패");
-            }
-
+            preparedStatement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            //객체 연결 해제
-            try {
-                if(rs!= null && !rs.isClosed()){
-                    rs.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                if(preparedStatement!= null && !preparedStatement.isClosed()){
-                    preparedStatement.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                if(connection != null && !connection.isClosed()){
-                    connection.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
+        } ReleaseDB();
     }
 	
 	private static void CheckReachEndPage(String[] startEndPage, int finalPage)

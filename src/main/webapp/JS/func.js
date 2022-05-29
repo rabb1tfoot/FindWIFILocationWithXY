@@ -5,8 +5,6 @@
 const COORDS = "coords";
 var x = "123";
 var y = "321";
-var arrWifiInfo = new Array();
-var arrHistory = new Array();
 function handleGeoSucces(position) {
 x = position.coords.latitude;
 y = position.coords.longitude;
@@ -29,35 +27,4 @@ function loadCoords() {
 function GetLoc() {
   loadCoords();
 }
-
-function FindaroundWifi(){
-	
-	var wifiTable = document.getElementById("wifiInfoTable");
-	var historyTable = document.getElementById("historyTable");
-	//wifi정보 업데이트
-	//GetData(wifiTable, historyTable);
-	//history 저장	
-}
-
-function GetData()
-{
-	
-	const db = window.openDatebase('')
-	const mysql = require('mysql');
-
-	const connection = mysql.createConnection({
-		host : 'localhost',
-		user : 'root',
-		database : 'wifiinfo',
-		password : '232723',
-	});
-	connection.connect();
-	connection.query("SELECT LAT,LNT FROM wifiInfo ", function(err, results) {
-		console.log(results);
-	});
-	connection.end();
-	
-}
-
-
 

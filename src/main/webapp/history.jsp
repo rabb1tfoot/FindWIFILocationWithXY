@@ -5,7 +5,26 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<link href="CSS/tables.css" rel="stylesheet"/> 
+
+<style>
+table, td, th {
+  border: 1px solid;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th{
+	background-color: #b1d6ff ;
+}
+
+td{
+	background-color: #e8f2fd ;
+}
+</style>
+
 <title>와이파이 정보 구하기 - 서준선</title>
 </head>
 <body>
@@ -18,6 +37,7 @@ List<javaCode.History> arrHis = javaCode.DBManager.GetHistoryDB();
 
 <p></p>
 <table>
+<thead>
   <tr>
     <th>ID</th>
     <th>위도</th>
@@ -25,6 +45,8 @@ List<javaCode.History> arrHis = javaCode.DBManager.GetHistoryDB();
     <th>조회일자</th>
     <th>비고</th>
   </tr>
+  </thead>
+  <tbody>
 <% 
 if(arrHis != null)
 {
@@ -61,6 +83,7 @@ if(arrHis != null)
 	}
 }
 %>
+</tbody>
 </table>
 </body>
 </html>
