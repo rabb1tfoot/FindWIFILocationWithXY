@@ -5,7 +5,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<link href="CSS/table.css" rel="stylesheet"/> 
+<link href="CSS/tables.css" rel="stylesheet"/> 
 <title>와이파이 정보 구하기 - 서준선</title>
 </head>
 <body>

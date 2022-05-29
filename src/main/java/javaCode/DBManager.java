@@ -114,11 +114,14 @@ public class DBManager {
             String sql = "select COUNT(*) as cnt from wifiinfo";
             preparedStatement = connection.prepareStatement(sql);
             rs = preparedStatement.executeQuery();
-            if(rs.getLong("cnt") > 0)
+            while(rs.next())
             {
-            	returnvalue = true;
+            	Long cnt = rs.getLong("cnt");
+                if(cnt > 0)
+                {
+                	returnvalue = true;
+                }
             }
-                
         	}catch (SQLException e) {
             e.printStackTrace();
             } finally {

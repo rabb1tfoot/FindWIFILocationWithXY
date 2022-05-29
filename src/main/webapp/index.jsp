@@ -7,7 +7,24 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<link href="CSS/table.css" rel="stylesheet" type="text/css"/> 
+<style>
+table, td, th {
+  border: 1px solid;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th{
+	background-color: #b1d6ff ;
+}
+
+td{
+	background-color: #e8f2fd ;
+}
+</style>
 <title>와이파이 정보 구하기 - 서준선</title>
 </head>
 <body>
@@ -25,14 +42,15 @@ LNT : <input id="locationY" name="locationY" required value="0.0"/>
 
 
 <table>
+<thead>
   <tr>
     <th>거리(KM)</th>
     <th>관리번호</th>
     <th>자치구</th>
     <th>와이파이명</th>
     <th>도로명주소</th>
-    <th>설치위치(층)</th>
     <th>상세주소</th>
+    <th>설치위치(층)</th>
     <th>설치유형</th>
     <th>설치기관</th>
     <th>서비스</th>
@@ -44,13 +62,15 @@ LNT : <input id="locationY" name="locationY" required value="0.0"/>
     <th>X좌표</th>
     <th>작업</th>
   </tr>
+  </thead>
+  <tbody>
   <%
-  //if(!javaCode.DBManager.IsSaved())
-  //{
-	//  out.write("<td colspan=\"15\">우선 와이파이 정보를 불러와주세요</td>");
-  //}
-  //else
-  //{
+  if(!javaCode.DBManager.IsSaved())
+  {
+	  out.write("<td colspan=\"15\">우선 와이파이 정보를 불러와주세요</td>");
+  }
+  else
+  {
 	  if(DBManager.IsSetDistance())
 	  {
 		  List<WifiInfo> infos = DBManager.GetwifiInfos();
@@ -63,9 +83,9 @@ LNT : <input id="locationY" name="locationY" required value="0.0"/>
 			  for(int j = 0; j < infos.get(i).ParamSize(); ++j)
 			  {
 				  %>
-				  <th>
+				  <td>
 				  <%=infos.get(i).GetParam(j)%>
-				  </th>
+				  </td>
 				  <%
 			  }
 			  %>
@@ -74,34 +94,9 @@ LNT : <input id="locationY" name="locationY" required value="0.0"/>
 		  }
 	  }
 	  
-  //}
+  }
   %>
+  </tbody>
 </table>
-
-<%--
-거리(KM) 관리번호 자치구 와이파이명 도로명주소 상세주소 설치유형 설치기관 서비스 구분 망종류 실내외구분 WIFI접속환경 X좌표 Y좌표 작업일자
-
-
-<%
-		List<String> strs = javaCode.Test.DBSelectWeb();
-		for(int i = 0; i < 4; ++i)
-		{
-			out.write("<tr>");
-			for(int j = 0; j < strs.size() / 4; ++j)
-			{
-		%>
-		<%--<a href = "detail.jsp?memberType=" <%=파라미터1%> &userId=<%=파라미터2%>>
-				<td><%=strs.get(i * 4 + j)%></td>
-		<%
-			}
-			out.write("</tr>");
-		}
-		%>
-<%
-	List<String> str = javaCode.Test.DBSelectWeb();
-	System.out.println(str.toString());
-	out.write(str.toString());
-%>
---%>
 </body>
 </html>
